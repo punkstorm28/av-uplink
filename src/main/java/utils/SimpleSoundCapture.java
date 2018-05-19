@@ -278,40 +278,20 @@ public class SimpleSoundCapture extends JPanel implements ActionListener {
 
             duration = 0;
             audioInputStream = null;
+            byte[] buffer = new byte[bufSize];
 
-
+            DatagramSocket socket = null;
+            InetAddress destination = null;
             try {
-                DatagramSocket socket = new DatagramSocket();
-                byte[] buffer = new byte[bufSize];
+                socket = new DatagramSocket();
+                destination = InetAddress.getByName("192.168.1.9");
 
-                DatagramPacket packet;
-
-                final InetAddress destination = InetAddress.getByName("192.168.1.5");
-                recorder = new AudioRecord(MediaRecorder.AudioSource.MIC,sampleRate,channelConfig,audioFormat,minBufSize*10);
-
-                recorder.startRecording();
-
-
-                while(status == true) {
-
-
-                    //reading data from MIC into buffer
-                    minBufSize = recorder.read(buffer, 0, buffer.length);
-
-                    //putting buffer in the packet
-                    packet = new DatagramPacket (buffer,buffer.length,destination,port);
-
-                    socket.send(packet);
-                    System.out.println("MinBufferSize: " +minBufSize);
-
-
-                }
 
             } catch (SocketException e) {
                 e.printStackTrace();
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
             }
-
-
 
 
             // define the required attributes for our line,
@@ -366,6 +346,18 @@ public class SimpleSoundCapture extends JPanel implements ActionListener {
                     break;
                 }
                 out.write(data, 0, numBytesRead);
+
+                buffer = data;
+
+                //putting buffer in the packet
+                DatagramPacket packet = new DatagramPacket (buffer, buffer.length, destination, 4445);
+
+                try {
+                    socket.send(packet);  // sending the packet to listeners
+                    System.out.println("packet sent");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
 
                 //TODO: write packet here
             }
